@@ -15,6 +15,7 @@ class Matrix4
     ~Matrix4();
     double* getPointer();  // return pointer to matrix elements
 	double get(int x, int y);
+    void setAll(double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double);
 
 	void identity();  // create identity matrix
 	

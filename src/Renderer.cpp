@@ -41,6 +41,10 @@ void Renderer::displayCallback(void)
     
     // Draw sides of renderer in object coordinate system:
     glBegin(GL_QUADS);
+    glEnd();
+    
+    glFlush();
+    glutSwapBuffers();
 
 }
 
@@ -53,7 +57,7 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);      	      	      // initialize GLUT
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);   // open an OpenGL context with double buffering, RGB colors, and depth buffering
     glutInitWindowSize(Renderer::width, Renderer::height);      // set initial window size
-    glutCreateWindow("OpenGL renderer for CSE167");    	      // open window and set window title
+    glutCreateWindow("The Rob Ford Project");    	      // open window and set window title
     
     glEnable(GL_DEPTH_TEST);            	      // enable depth buffering
     glClear(GL_DEPTH_BUFFER_BIT);       	      // clear depth buffer

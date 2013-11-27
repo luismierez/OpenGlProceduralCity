@@ -42,20 +42,20 @@ void Camera::setUp(Vector4* upP)
 
 void Camera::generateCameraMatrix()
 {
-	Vector4* zAx;
+	Vector4 zAx;
 	zAx = (*e)-(*d);
-	zAx->normalize();
+	zAx.normalize();
 
-	Vector4* xAx = up->crossProduct(*zAx);
-	xAx->normalize();
+	Vector4 xAx = up->crossProduct(zAx);
+	xAx.normalize();
 
-	Vector4* yAx = zAx->crossProduct(*xAx);
+	Vector4 yAx = zAx.crossProduct(xAx);
 
 	camMat->setAll
 	(
-		xAx->get(v_x_coord),	yAx->get(v_x_coord),	zAx->get(v_x_coord),	e->get(v_x_coord),
-		xAx->get(v_y_coord),	yAx->get(v_y_coord),	zAx->get(v_y_coord),	e->get(v_y_coord),
-		xAx->get(v_z_coord),	yAx->get(v_z_coord),	zAx->get(v_z_coord),	e->get(v_z_coord),
+		xAx.get(v_x_coord),	yAx.get(v_x_coord),	zAx.get(v_x_coord),	e->get(v_x_coord),
+		xAx.get(v_y_coord),	yAx.get(v_y_coord),	zAx.get(v_y_coord),	e->get(v_y_coord),
+		xAx.get(v_z_coord),	yAx.get(v_z_coord),	zAx.get(v_z_coord),	e->get(v_z_coord),
 		0,						0,						0,						1
 	);
 	inverseCamMat->setAll //C inverse = T inverse times R transpose

@@ -18,9 +18,11 @@ public:
 	double operator[](int);
 
 	void add(Vector4&);
-	Vector4* operator+(Vector4&);
+	Vector4 operator+(Vector4&);
 	void subtract(Vector4&);
-	Vector4* operator-(Vector4&);
+	Vector4 operator-(Vector4&);
+    
+    Vector4 crossProduct(Vector4&);
 
 	void dehomogenize();
     void normalize();

@@ -17,6 +17,14 @@ Vector4::Vector4(double x, double y, double z, double w)
 	v[3] = w;
 }
 
+Vector4::Vector4(double x, double y, double z)
+{
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+    v[3] = 1;
+}
+
 double* Vector4::getPointer()
 {
 	return v;
@@ -60,9 +68,9 @@ void Vector4::add(Vector4& vect)
 	v[3]+=vect[3];
 }
 
-Vector4* Vector4::operator+(Vector4& vect)
+Vector4 Vector4::operator+(Vector4& vect)
 {
-	return new Vector4(v[0]+vect[0],
+	return Vector4(v[0]+vect[0],
 					   v[1]+vect[1],
 					   v[2]+vect[2],
 					   v[3]+vect[3]);	
@@ -75,12 +83,20 @@ void Vector4::subtract(Vector4& vect)
 	vect.negate();
 }
 
-Vector4* Vector4::operator-(Vector4& vect)
+Vector4 Vector4::operator-(Vector4& vect)
 {
-	return new Vector4(v[0]-vect[0],
+	return Vector4(v[0]-vect[0],
 					   v[1]-vect[1],
 					   v[2]-vect[2],
 					   v[3]-vect[3]);
+}
+
+Vector4 Vector4::crossProduct(Vector4& other)
+{
+    double x = (v[v_y_coord]*other.get(v_z_coord)) - (v[v_z_coord]*other.get(v_y_coord));
+    double y = (v[v_z_coord]*other.get(v_x_coord)) - (v[v_x_coord]*other.get(v_z_coord));
+    double z = (v[v_x_coord]*other.get(v_y_coord)) - (v[v_y_coord]*other.get(v_x_coord));
+    return Vector4(x,y,z,0);
 }
 
 void Vector4::negate()
@@ -98,6 +114,8 @@ void Vector4::dehomogenize()
 	v[2] /= v[3];
 	v[3] /= v[3];
 }
+
+
 
 double Vector4::magnitude()
 {

@@ -5,10 +5,6 @@
 
 class Renderer
 {
-protected:
-    Matrix4 matrix;                 // model matrix
-    double angle;                   // rotation angle [degrees]
-    
 public:
     static int width, height;
     
