@@ -2,6 +2,7 @@
 #define _RENDERER_H_
 
 #include "Matrix4.h"
+#include "Camera.h"
 
 class Renderer
 {

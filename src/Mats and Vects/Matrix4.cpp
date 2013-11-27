@@ -167,7 +167,7 @@ void Matrix4::rotateX(double angle)
 // angle in radians
 void Matrix4::rotateY(double angle)
 {
-    angle = (angle/180.0) * M_PI;
+    angle = (angle/180.0) * M_1_PI;
 
 	m[0][0] = cos(angle);
 	m[0][1] = 0;

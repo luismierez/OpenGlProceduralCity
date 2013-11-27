@@ -3,9 +3,9 @@
 
 Camera::Camera()
 {
-	e				= new Vector4(0,0,0);
-	d				= new Vector4(1,0,0);
-	up				= new Vector4(0,0,1);
+	e				= new Vector4(0,0,-1);
+	d				= new Vector4(0,0,0);
+	up				= new Vector4(0,1,0);
 	camMat			= new Matrix4();
 	inverseCamMat	= new Matrix4();
 
