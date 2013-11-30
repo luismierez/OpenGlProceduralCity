@@ -8,10 +8,20 @@
 
 #include "Road.h"
 
+
 Road::Road()
 {
-    width = 10;
+    roadPlacement = 0;
 }
+Road::Road(int placement)
+{
+    roadPlacement = placement;
+}
+
+void Road::setRoadPlacement(int placement)
+{
+    roadPlacement = placement;
+};
 
 void Road::setOrientation(Orientation inOrient)
 {
@@ -25,24 +35,26 @@ int Road::getOrientation()
 
 void Road::drawRoad()
 {
+    //gridSpot between -20 and 20
     glBegin(GL_QUADS);
     
     //Draw a road along the z axis with width of 10
     if(orientation==vertical){
-        glVertex3f(10.0, 0, -200);
-        glVertex3f(10.0, 0, 200);
-        glVertex3f(0.0, 0, 200);
-        glVertex3f(0.0, 0, -200);
+        glNormal3f(0.0, 1.0, 0.0);
+        glVertex3f(roadPlacement*10.0, 0, -100);
+        glVertex3f(roadPlacement*10.0, 0, 100);
+        glVertex3f(roadPlacement*10.0-10, 0, 100);
+        glVertex3f(roadPlacement*10.0-10, 0, -100);
 
     }
     
     //Draw a road along the x axis with width of 10
     else if(orientation==horizontal){
         glNormal3f(0, 1, 1);
-        glVertex3f(-200, 0, 10.0);
-        glVertex3f(200, 0, 10.0);
-        glVertex3f(200, 0, 0.0);
-        glVertex3f(-200, 0, 0.0);
+        glVertex3f(-100, 0, roadPlacement*10.0);
+        glVertex3f(100, 0, roadPlacement*10.0);
+        glVertex3f(100, 0, roadPlacement*10.0-10);
+        glVertex3f(-100, 0, roadPlacement*10.0-10);
     }
     
     glEnd();

@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <GLUT/glut.h>
 #include "Renderer.h"
 #include "Matrix4.h"
 #include "Road.h"
+#include <time.h>
+#include <vector>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ static Camera camera;
 int Renderer::width  = 512;   // set window width in pixels here
 int Renderer::height = 512;   // set window height in pixels here
 
-Road r1, r2;
+vector<Road> roads;
 
 static Matrix4 modelViewTemp;
 static Matrix4 trackballMat;
@@ -23,20 +24,74 @@ int track_x, track_y = 0;
 void init()
 {
     //Default view
-	Vector4* e	= new Vector4(0, 10, -20);
-	Vector4* d	= new Vector4(0, 0, 0);
+	Vector4* e	= new Vector4(0, 10, 10);
+	Vector4* d	= new Vector4(0, 0, -1);
 	Vector4* up = new Vector4(0, 1, 0, 0);
 	camera = Camera(e, d, up);
     
     trackballMat.identity();
     resultMatObj.identity();
 
-    r1 = Road();
-    r1.setOrientation(vertical);
+    //Randomly assign roadPlacement
+    srand(time(NULL));
+    int roadPlacement;
+    std::vector<int> pastPlacement;
+    Orientation orient;
     
-    r2 = Road();
-    r2.setOrientation(horizontal);
+    /*TODO: there's something wrong in the part below this.
+    It's still creating roads that are next to each other
+    and sometimes it only draws 4 roads either vertically or
+    horizontally*/
+    
+    //Go through the number of roads
+    for(int i=0; i<NUM_OF_ROADS; i++)
+    {
+        //Randomly place them
+        roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));
+        
+        //For all the even roads
+        if(i%2 == 0){
+            //make them vertical (along the z-axis)
+            orient = vertical;
+            
 
+            
+            //compare them against the past road placements
+            for(int j=0; j<pastPlacement.size(); j++)
+            {
+                //If they're directly next to eachother, reassign the current road placement
+                while(roadPlacement-pastPlacement[j] <= 1 &&
+                      pastPlacement[j]-roadPlacement <= 1)
+                {
+                    roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));;
+                }
+            }
+        }
+    
+        //For all the odd roads, make them horizontal
+        else
+        {
+            orient = horizontal;
+            for(int j=0; j<pastPlacement.size(); j++)
+            {
+                while(roadPlacement-pastPlacement[j] <= 1 &&
+                      pastPlacement[j]-roadPlacement <= 1)
+                {
+                    roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));;
+                }
+            }
+        }
+        
+        //Add the road to the list of roads
+        roads.push_back(Road(roadPlacement));
+        
+        //Set the current roads orientation
+        roads[i].setOrientation(orient);
+        
+        //Add the current placement to the past placements
+        pastPlacement.push_back(roadPlacement);
+
+    }
 }
 
 void drawAxis()
@@ -60,15 +115,15 @@ void drawAxis()
 void drawCityGrid()
 {
     glBegin(GL_LINES);
-    for(int i=-20; i<20; i++)
+    for(int i=-10; i<11; i++)
     {
         //Draw Vertical Lines
-        glVertex3f(i*10, 0, 200);
-        glVertex3f(i*10, 0, -200);
+        glVertex3f(i*10, 0, 100);
+        glVertex3f(i*10, 0, -100);
         
         //Draw Horizontal Lines
-        glVertex3f(200, 0, i*10);
-        glVertex3f(-200, 0, i*10);
+        glVertex3f(100, 0, i*10);
+        glVertex3f(-100, 0, i*10);
     }
     glEnd();
     
@@ -109,15 +164,17 @@ void Renderer::displayCallback(void)
     modelViewTemp = modelViewTemp.multiply(resultMatObj);
     
     glLoadMatrixd(modelViewTemp.getPointer());
+    glNormal3f(0.0, 1.0, 0.0);
     
-
     //Draw a white city grid
     glColor3f(1, 1, 1);
     drawCityGrid();
-    
-    //Draw two roads intersecting
-    r1.drawRoad();
-    r2.drawRoad();
+
+    //Draw all roads
+    for(int i=0; i<roads.size(); i++)
+    {
+        roads[i].drawRoad();
+    }
 
     //Draw all 3 of the Axis
     drawAxis();
@@ -154,15 +211,17 @@ void motion_func (int x, int y)
 int main(int argc, char *argv[])
 {
     init();
-    
+
+
     float specular[]  = {1.0, 1.0, 1.0, 1.0};
     float shininess[] = {100.0};
-    float position[]  = {0.0, 10.0, 1.0, 0.0};	// lightsource position
+    float position[]  = {0.0, 10.0, 0.0, 1.0};	// lightsource position
     
     glutInit(&argc, argv);      	      	      // initialize GLUT
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);   // open an OpenGL context with double buffering, RGB colors, and depth buffering
     glutInitWindowSize(Renderer::width, Renderer::height);      // set initial window size
     glutCreateWindow("The Rob Ford Project");    	      // open window and set window title
+    
     
     glEnable(GL_DEPTH_TEST);            	      // enable depth buffering
     glClear(GL_DEPTH_BUFFER_BIT);       	      // clear depth buffer
@@ -180,7 +239,7 @@ int main(int argc, char *argv[])
     
     // Generate light source:
     glLightfv(GL_LIGHT0, GL_POSITION, position);
-    glEnable(GL_LIGHTING);
+//    glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
     // Install callback functions:

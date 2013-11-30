@@ -23,9 +23,13 @@ class Road
 private:
     int width;
     int orientation;
+    int roadPlacement;
 
 public:
     Road();
+    
+    Road(int);
+    void setRoadPlacement(int);
     void setOrientation(Orientation);
     int getOrientation();
     void drawRoad();

@@ -4,6 +4,17 @@
 #include "Matrix4.h"
 #include "Camera.h"
 
+#ifdef _APPLE_
+#include <GLUT/glut.h>
+#endif
+
+#ifdef _WIN32_
+#include <Gl/glut.h>
+#endif
+
+#define NUM_OF_ROADS 10
+#define SIZE_OF_CITY 100
+
 class Renderer
 {
 public:
