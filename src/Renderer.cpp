@@ -7,8 +7,70 @@
 #include "Building.h"
 #include <time.h>
 #include <vector>
+#include <process.h>
 
 using namespace std;
+//--------------OSC-----------//
+#include "oscpkt.hh"
+#include "udp.hh"
+
+using std::cout;
+using std::cerr;
+
+using namespace oscpkt;
+const int PORT_NUM = 9109;
+float red = 0;
+float green = 0;
+float blue = 0;
+void runServer(void *param)
+{
+	UdpSocket sock;
+	sock.bindTo(PORT_NUM);
+	if(!sock.isOk())
+	{
+		cerr << "Error opening port " << PORT_NUM << ": " << sock.errorMessage() << "\n";
+	} else 
+	{
+		cout << "Server started, will listen to packets on port " << PORT_NUM << std::endl;
+		PacketReader pr;
+		PacketWriter pw;
+		while(sock.isOk())
+		{
+			if (sock.receiveNextPacket(30)) // timeout in ms
+			{
+				pr.init(sock.packetData(), sock.packetSize());
+				oscpkt::Message *msg;
+				while(pr.isOk() && (msg = pr.popMessage()) != 0)
+				{
+					int iarg;
+					double darg;
+					float farg;
+					if(msg->match("/red").popFloat(farg).isOkNoMoreArgs())
+					{
+						red = farg;
+					}
+					if (msg->match("/green").popFloat(farg).isOkNoMoreArgs())
+					{
+						green = farg;
+					}
+
+					if (msg->match("/blue").popFloat(farg).isOkNoMoreArgs())
+					{
+						blue = farg;
+					}
+					cout << "Red: " << red << "\n";
+					cout << "Green: " << green << "\n";
+					cout << "Blue: " << blue << "\n";
+				}
+
+
+			}
+		}
+	}
+}
+
+
+//----------End OSC---------//
 
 static Camera camera;
 
@@ -275,6 +337,8 @@ int main(int argc, char *argv[])
     glutMouseFunc(mouse_func);
     glutMotionFunc(motion_func);
     
+
+	_beginthread(runServer, 0, NULL);
     glutMainLoop();
     return 0;
 }
