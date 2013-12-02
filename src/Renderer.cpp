@@ -21,6 +21,9 @@ static Matrix4 trackballMat;
 static Matrix4 resultMatObj;
 int track_x, track_y = 0;
 
+std::vector<int> roadPlacementVert;
+std::vector<int> roadPlacementHori;
+
 void init()
 {
     //Default view
@@ -35,51 +38,49 @@ void init()
     //Randomly assign roadPlacement
     srand(time(NULL));
     int roadPlacement;
-    std::vector<int> pastPlacement;
+
     Orientation orient;
-    
-    /*TODO: there's something wrong in the part below this.
-    It's still creating roads that are next to each other
-    and sometimes it only draws 4 roads either vertically or
-    horizontally*/
     
     //Go through the number of roads
     for(int i=0; i<NUM_OF_ROADS; i++)
     {
         //Randomly place them
-        roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));
+        roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
         
         //For all the even roads
         if(i%2 == 0){
             //make them vertical (along the z-axis)
             orient = vertical;
             
-
-            
             //compare them against the past road placements
-            for(int j=0; j<pastPlacement.size(); j++)
+            for(int j=0; j<roadPlacementVert.size(); j++)
             {
                 //If they're directly next to eachother, reassign the current road placement
-                while(roadPlacement-pastPlacement[j] <= 1 &&
-                      pastPlacement[j]-roadPlacement <= 1)
+                while(abs(roadPlacement-roadPlacementVert[j]) <= 1)
                 {
-                    roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));;
+                    roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
+                    j=0;
                 }
             }
+            
+            roadPlacementVert.push_back(roadPlacement);
+            printf("%d\n", roadPlacement);
         }
     
         //For all the odd roads, make them horizontal
         else
         {
             orient = horizontal;
-            for(int j=0; j<pastPlacement.size(); j++)
+            for(int j=0; j<roadPlacementHori.size(); j++)
             {
-                while(roadPlacement-pastPlacement[j] <= 1 &&
-                      pastPlacement[j]-roadPlacement <= 1)
+                while(abs(roadPlacement-roadPlacementHori[j]) <= 1)
                 {
-                    roadPlacement = NUM_OF_ROADS-(rand()%(2*NUM_OF_ROADS+1));;
+                    roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
+                    j=0;
                 }
             }
+            
+            roadPlacementHori.push_back(roadPlacement);
         }
         
         //Add the road to the list of roads
@@ -87,10 +88,6 @@ void init()
         
         //Set the current roads orientation
         roads[i].setOrientation(orient);
-        
-        //Add the current placement to the past placements
-        pastPlacement.push_back(roadPlacement);
-
     }
 }
 
@@ -115,19 +112,86 @@ void drawAxis()
 void drawCityGrid()
 {
     glBegin(GL_LINES);
-    for(int i=-10; i<11; i++)
+    for(int i=-NUM_OF_BLOCKS; i<NUM_OF_BLOCKS+1; i++)
     {
         //Draw Vertical Lines
-        glVertex3f(i*10, 0, 100);
-        glVertex3f(i*10, 0, -100);
+        glVertex3f(i*10, 0, 10*NUM_OF_BLOCKS);
+        glVertex3f(i*10, 0, -10*NUM_OF_BLOCKS);
         
         //Draw Horizontal Lines
-        glVertex3f(100, 0, i*10);
-        glVertex3f(-100, 0, i*10);
+        glVertex3f(10*NUM_OF_BLOCKS, 0, i*10);
+        glVertex3f(-10*NUM_OF_BLOCKS, 0, i*10);
     }
     glEnd();
     
     
+}
+
+void drawBuildings()
+{
+    srand(time(NULL));
+    int buildingHeight;
+    
+    glBegin(GL_QUADS);
+    for(int i=-NUM_OF_BLOCKS+1; i<NUM_OF_BLOCKS+1; i++)
+    {
+        for(int j=-NUM_OF_BLOCKS+1; j<NUM_OF_BLOCKS+1; j++)
+        {
+            //Checks all of the road placements
+            if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) == roadPlacementVert.end() &&
+               std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) == roadPlacementHori.end())
+            {
+                buildingHeight = 20;
+
+                //If the block is not a road, draw a building
+                
+                glColor3f(.2, .2, .2);
+                //Bottom Face
+                glNormal3f(0, -1, 0);
+                glVertex3f(i*10, 0, j*10-10);
+                glVertex3f(i*10, 0, j*10);
+                glVertex3f(i*10-10, 0, j*10);
+                glVertex3f(i*10-10, 0, j*10-10);
+                
+                //Left Face
+                glNormal3f(-1, 0, 0);
+                glVertex3f(i*10, 0, j*10-10);
+                glVertex3f(i*10, 0, j*10);
+                glVertex3f(i*10, buildingHeight, j*10);
+                glVertex3f(i*10, buildingHeight, j*10-10);
+                
+                //Right Face
+                glNormal3f(1, 0, 0);
+                glVertex3f(i*10-10, 0, j*10-10);
+                glVertex3f(i*10-10, 0, j*10);
+                glVertex3f(i*10-10, buildingHeight, j*10);
+                glVertex3f(i*10-10, buildingHeight, j*10-10);
+                
+                //Front Face
+                glNormal3f(0, 0, 1);
+                glVertex3f(i*10, 0, j*10);
+                glVertex3f(i*10, buildingHeight, j*10);
+                glVertex3f(i*10-10, buildingHeight, j*10);
+                glVertex3f(i*10-10, 0, j*10);
+                
+                //Front Face
+                glNormal3f(0, 0, -1);
+                glVertex3f(i*10, 0, j*10-10);
+                glVertex3f(i*10, buildingHeight, j*10-10);
+                glVertex3f(i*10-10, buildingHeight, j*10-10);
+                glVertex3f(i*10-10, 0, j*10-10);
+                
+                //Top Face
+                glNormal3f(0, 1, 0);
+                glVertex3f(i*10, buildingHeight, j*10-10);
+                glVertex3f(i*10, buildingHeight, j*10);
+                glVertex3f(i*10-10, buildingHeight, j*10);
+                glVertex3f(i*10-10, buildingHeight, j*10-10);
+            }
+        }
+    }
+    glEnd();
+
 }
 //----------------------------------------------------------------------------
 // Callback method called when system is idle.
@@ -175,6 +239,9 @@ void Renderer::displayCallback(void)
     {
         roads[i].drawRoad();
     }
+    
+    //Draw Buildings
+    drawBuildings();
 
     //Draw all 3 of the Axis
     drawAxis();
@@ -215,7 +282,7 @@ int main(int argc, char *argv[])
 
     float specular[]  = {1.0, 1.0, 1.0, 1.0};
     float shininess[] = {100.0};
-    float position[]  = {0.0, 10.0, 0.0, 1.0};	// lightsource position
+    float position[]  = {0.0, 10.0, 1.0, 0.0};	// lightsource position
     
     glutInit(&argc, argv);      	      	      // initialize GLUT
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);   // open an OpenGL context with double buffering, RGB colors, and depth buffering
@@ -239,7 +306,7 @@ int main(int argc, char *argv[])
     
     // Generate light source:
     glLightfv(GL_LIGHT0, GL_POSITION, position);
-//    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
     // Install callback functions:

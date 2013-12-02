@@ -7,6 +7,7 @@
 //
 
 #include "Road.h"
+#include "Renderer.h"
 
 
 Road::Road()
@@ -41,20 +42,20 @@ void Road::drawRoad()
     //Draw a road along the z axis with width of 10
     if(orientation==vertical){
         glNormal3f(0.0, 1.0, 0.0);
-        glVertex3f(roadPlacement*10.0, 0, -100);
-        glVertex3f(roadPlacement*10.0, 0, 100);
-        glVertex3f(roadPlacement*10.0-10, 0, 100);
-        glVertex3f(roadPlacement*10.0-10, 0, -100);
+        glVertex3f(roadPlacement*10.0, 0, -10*NUM_OF_BLOCKS);
+        glVertex3f(roadPlacement*10.0, 0, 10*NUM_OF_BLOCKS);
+        glVertex3f(roadPlacement*10.0-10, 0, 10*NUM_OF_BLOCKS);
+        glVertex3f(roadPlacement*10.0-10, 0, -10*NUM_OF_BLOCKS);
 
     }
     
     //Draw a road along the x axis with width of 10
     else if(orientation==horizontal){
-        glNormal3f(0, 1, 1);
-        glVertex3f(-100, 0, roadPlacement*10.0);
-        glVertex3f(100, 0, roadPlacement*10.0);
-        glVertex3f(100, 0, roadPlacement*10.0-10);
-        glVertex3f(-100, 0, roadPlacement*10.0-10);
+        glNormal3f(0, 1, 0);
+        glVertex3f(-10*NUM_OF_BLOCKS, 0, roadPlacement*10.0);
+        glVertex3f(10*NUM_OF_BLOCKS, 0, roadPlacement*10.0);
+        glVertex3f(10*NUM_OF_BLOCKS, 0, roadPlacement*10.0-10);
+        glVertex3f(-10*NUM_OF_BLOCKS, 0, roadPlacement*10.0-10);
     }
     
     glEnd();
