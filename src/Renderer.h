@@ -12,8 +12,10 @@
 #include <Gl/glut.h>
 #endif
 
-#define NUM_OF_ROADS 20
-#define NUM_OF_BLOCKS 20
+#define DRAW_CITY 1
+#define NUM_OF_ROADS 10
+#define NUM_OF_BLOCKS 10
+#define BLOCK_WIDTH 10
 
 class Renderer
 {

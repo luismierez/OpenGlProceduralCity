@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "Matrix4.h"
 #include "Road.h"
+#include "Building.h"
 #include <time.h>
 #include <vector>
 
@@ -15,6 +16,7 @@ int Renderer::width  = 512;   // set window width in pixels here
 int Renderer::height = 512;   // set window height in pixels here
 
 vector<Road> roads;
+vector<Building> buildings;
 
 static Matrix4 modelViewTemp;
 static Matrix4 trackballMat;
@@ -89,6 +91,25 @@ void init()
         //Set the current roads orientation
         roads[i].setOrientation(orient);
     }
+    
+    
+    
+    int buildingHeight;
+    for(int i=-NUM_OF_BLOCKS+1; i<NUM_OF_BLOCKS+1; i++)
+    {
+        for(int j=-NUM_OF_BLOCKS+1; j<NUM_OF_BLOCKS+1; j++)
+        {
+            //Checks all of the road placements
+            if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) == roadPlacementVert.end() &&
+               std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) == roadPlacementHori.end())
+            {
+                buildingHeight = rand()%30+20;
+                buildings.push_back(Building(buildingHeight, i, j));
+            }
+        }
+    }
+    
+
 }
 
 void drawAxis()
@@ -115,84 +136,18 @@ void drawCityGrid()
     for(int i=-NUM_OF_BLOCKS; i<NUM_OF_BLOCKS+1; i++)
     {
         //Draw Vertical Lines
-        glVertex3f(i*10, 0, 10*NUM_OF_BLOCKS);
-        glVertex3f(i*10, 0, -10*NUM_OF_BLOCKS);
+        glVertex3f(i*BLOCK_WIDTH, 0, BLOCK_WIDTH*NUM_OF_BLOCKS);
+        glVertex3f(i*BLOCK_WIDTH, 0, -BLOCK_WIDTH*NUM_OF_BLOCKS);
         
         //Draw Horizontal Lines
-        glVertex3f(10*NUM_OF_BLOCKS, 0, i*10);
-        glVertex3f(-10*NUM_OF_BLOCKS, 0, i*10);
+        glVertex3f(BLOCK_WIDTH*NUM_OF_BLOCKS, 0, i*BLOCK_WIDTH);
+        glVertex3f(-BLOCK_WIDTH*NUM_OF_BLOCKS, 0, i*BLOCK_WIDTH);
     }
     glEnd();
     
     
 }
 
-void drawBuildings()
-{
-    srand(time(NULL));
-    int buildingHeight;
-    
-    glBegin(GL_QUADS);
-    for(int i=-NUM_OF_BLOCKS+1; i<NUM_OF_BLOCKS+1; i++)
-    {
-        for(int j=-NUM_OF_BLOCKS+1; j<NUM_OF_BLOCKS+1; j++)
-        {
-            //Checks all of the road placements
-            if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) == roadPlacementVert.end() &&
-               std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) == roadPlacementHori.end())
-            {
-                buildingHeight = 20;
-
-                //If the block is not a road, draw a building
-                
-                glColor3f(.2, .2, .2);
-                //Bottom Face
-                glNormal3f(0, -1, 0);
-                glVertex3f(i*10, 0, j*10-10);
-                glVertex3f(i*10, 0, j*10);
-                glVertex3f(i*10-10, 0, j*10);
-                glVertex3f(i*10-10, 0, j*10-10);
-                
-                //Left Face
-                glNormal3f(-1, 0, 0);
-                glVertex3f(i*10, 0, j*10-10);
-                glVertex3f(i*10, 0, j*10);
-                glVertex3f(i*10, buildingHeight, j*10);
-                glVertex3f(i*10, buildingHeight, j*10-10);
-                
-                //Right Face
-                glNormal3f(1, 0, 0);
-                glVertex3f(i*10-10, 0, j*10-10);
-                glVertex3f(i*10-10, 0, j*10);
-                glVertex3f(i*10-10, buildingHeight, j*10);
-                glVertex3f(i*10-10, buildingHeight, j*10-10);
-                
-                //Front Face
-                glNormal3f(0, 0, 1);
-                glVertex3f(i*10, 0, j*10);
-                glVertex3f(i*10, buildingHeight, j*10);
-                glVertex3f(i*10-10, buildingHeight, j*10);
-                glVertex3f(i*10-10, 0, j*10);
-                
-                //Front Face
-                glNormal3f(0, 0, -1);
-                glVertex3f(i*10, 0, j*10-10);
-                glVertex3f(i*10, buildingHeight, j*10-10);
-                glVertex3f(i*10-10, buildingHeight, j*10-10);
-                glVertex3f(i*10-10, 0, j*10-10);
-                
-                //Top Face
-                glNormal3f(0, 1, 0);
-                glVertex3f(i*10, buildingHeight, j*10-10);
-                glVertex3f(i*10, buildingHeight, j*10);
-                glVertex3f(i*10-10, buildingHeight, j*10);
-                glVertex3f(i*10-10, buildingHeight, j*10-10);
-            }
-        }
-    }
-    glEnd();
-
-}
 //----------------------------------------------------------------------------
 // Callback method called when system is idle.
 void Renderer::idleCallback(void)
@@ -241,7 +196,10 @@ void Renderer::displayCallback(void)
     }
     
     //Draw Buildings
-    drawBuildings();
+    for(int i=0; i<buildings.size(); i++)
+    {
+        buildings[i].drawBuilding();
+    }
 
     //Draw all 3 of the Axis
     drawAxis();
