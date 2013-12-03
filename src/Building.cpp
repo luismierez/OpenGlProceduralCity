@@ -9,6 +9,7 @@
 #include "Building.h"
 #include "Renderer.h"
 
+
 Building::Building()
 {
     height = 20;
@@ -31,7 +32,7 @@ void Building::drawBuilding()
 {
     glBegin(GL_QUADS);
     //Bottom Face
-    glColor3f(.2, .2, .2);
+    glColor3f(.7, .3, .9);
     glNormal3f(0, -1, 0);
     glVertex3f(vertBlock*BLOCK_WIDTH, 0, horiBlock*BLOCK_WIDTH-BLOCK_WIDTH);
     glVertex3f(vertBlock*BLOCK_WIDTH, 0, horiBlock*BLOCK_WIDTH);

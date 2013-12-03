@@ -14,9 +14,7 @@ Tree::~Tree(void)
 
 string Tree::generateTree(string nextString)
 {
-	time_t myTime = time(NULL); 
-	cout << myTime;
-	srand(myTime);
+	srand(time(NULL));
 	string finalString = "";
 	list<string> tokens = splitStr(nextString, " ");
 	for(list<string>::iterator iter = tokens.begin(); iter != tokens.end(); iter++)

@@ -8,12 +8,13 @@
 /* Development Macros: Enable or disable certain parts of the program */
 #define DRAW_CITY 0 /* Grady's City Generation Test */
 #define DRAW_PD 0	/* Luis's PD/UDP tests */
-#define DRAW_LSYS 1 /* Ryan's L-System Tree Test */
+#define DRAW_LSYS 0 /* Ryan's L-System Tree Test */
 /* End dev marcos */
 
+//NUM_OF_ROADS must be less than half the number of blocks
 #define NUM_OF_ROADS 10
-#define NUM_OF_BLOCKS 10
-#define BLOCK_WIDTH 10
+#define NUM_OF_BLOCKS 20
+#define BLOCK_WIDTH 30
 
 class Renderer
 {

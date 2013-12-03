@@ -3,7 +3,6 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
-#include <process.h>
 #include <algorithm>
 
 #include "Renderer.h"
@@ -14,6 +13,7 @@
 
 using namespace std;
 //--------------OSC-----------//
+#if _DRAW_PD_
 #include "oscpkt.hh"
 #include "udp.hh"
 
@@ -72,6 +72,7 @@ void runServer(void *param)
 		}
 	}
 }
+#endif
 
 
 //----------End OSC---------//
@@ -94,11 +95,7 @@ std::vector<int> roadPlacementHori;
 
 void init()
 {
-    //Default view
-	Vector4* e	= new Vector4(0, 10, 10);
-	Vector4* d	= new Vector4(0, 0, -1);
-	Vector4* up = new Vector4(0, 1, 0, 0);
-	camera = Camera(e, d, up);
+
     
     trackballMat.identity();
     resultMatObj.identity();
@@ -114,7 +111,7 @@ void init()
     for(int i=0; i<NUM_OF_ROADS; i++)
     {
         //Randomly place them
-        roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
+        roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
         
         //For all the even roads
         if(i%2 == 0){
@@ -127,13 +124,12 @@ void init()
                 //If they're directly next to eachother, reassign the current road placement
                 while(abs(roadPlacement-roadPlacementVert[j]) <= 1)
                 {
-                    roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
+                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
                     j=0;
                 }
             }
             
             roadPlacementVert.push_back(roadPlacement);
-            printf("%d\n", roadPlacement);
         }
     
         //For all the odd roads, make them horizontal
@@ -144,7 +140,7 @@ void init()
             {
                 while(abs(roadPlacement-roadPlacementHori[j]) <= 1)
                 {
-                    roadPlacement = NUM_OF_BLOCKS-(rand()%(2*NUM_OF_BLOCKS+1));
+                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
                     j=0;
                 }
             }
@@ -162,9 +158,9 @@ void init()
     
     
     int buildingHeight;
-    for(int i=-NUM_OF_BLOCKS+1; i<NUM_OF_BLOCKS+1; i++)
+    for(int i=-(NUM_OF_BLOCKS/2)+1; i<(NUM_OF_BLOCKS/2)+1; i++)
     {
-        for(int j=-NUM_OF_BLOCKS+1; j<NUM_OF_BLOCKS+1; j++)
+        for(int j=-(NUM_OF_BLOCKS/2)+1; j<(NUM_OF_BLOCKS/2)+1; j++)
         {
             //Checks all of the road placements
             if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) == roadPlacementVert.end() &&
@@ -175,8 +171,23 @@ void init()
             }
         }
     }
+    
+    //Default view
+	Vector4* e	= new Vector4(roadPlacementVert[0]*BLOCK_WIDTH-(BLOCK_WIDTH/2), 10, -(NUM_OF_BLOCKS/2)*BLOCK_WIDTH);
+	Vector4* d	= new Vector4(roadPlacementVert[0]*BLOCK_WIDTH-(BLOCK_WIDTH/2), 0, 1);
+	Vector4* up = new Vector4(0, 1, 0);
+	camera = Camera(e, d, up);
+    
+    #else
+    Vector4* e	= new Vector4(0, 0, 0);
+	Vector4* d	= new Vector4(0, 0, 1);
+	Vector4* up = new Vector4(0, 1, 0);
+	camera = Camera(e, d, up);
 	#endif
 
+
+
+    
 }
 
 void drawAxis()
@@ -200,15 +211,15 @@ void drawAxis()
 void drawCityGrid()
 {
     glBegin(GL_LINES);
-    for(int i=-NUM_OF_BLOCKS; i<NUM_OF_BLOCKS+1; i++)
+    for(int i=-(NUM_OF_BLOCKS/2); i<(NUM_OF_BLOCKS/2)+1; i++)
     {
         //Draw Vertical Lines
-        glVertex3f(i*BLOCK_WIDTH, 0, BLOCK_WIDTH*NUM_OF_BLOCKS);
-        glVertex3f(i*BLOCK_WIDTH, 0, -BLOCK_WIDTH*NUM_OF_BLOCKS);
+        glVertex3f(i*BLOCK_WIDTH, 0, BLOCK_WIDTH*(NUM_OF_BLOCKS/2));
+        glVertex3f(i*BLOCK_WIDTH, 0, -BLOCK_WIDTH*(NUM_OF_BLOCKS/2));
         
         //Draw Horizontal Lines
-        glVertex3f(BLOCK_WIDTH*NUM_OF_BLOCKS, 0, i*BLOCK_WIDTH);
-        glVertex3f(-BLOCK_WIDTH*NUM_OF_BLOCKS, 0, i*BLOCK_WIDTH);
+        glVertex3f(BLOCK_WIDTH*(NUM_OF_BLOCKS/2), 0, i*BLOCK_WIDTH);
+        glVertex3f(-BLOCK_WIDTH*(NUM_OF_BLOCKS/2), 0, i*BLOCK_WIDTH);
     }
     glEnd();
     
@@ -232,7 +243,6 @@ void Renderer::reshapeCallback(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-10.0, 10.0, -10.0, 10.0, 10, 1000.0); // set perspective projection viewing frustum
-    glTranslatef(0, 0, -100);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -248,10 +258,8 @@ void Renderer::displayCallback(void)
     
     modelViewTemp = modelViewTemp.multiply(*camera.getCameraMatrixInverse());
     modelViewTemp = modelViewTemp.multiply(resultMatObj);
-    
     glLoadMatrixd(modelViewTemp.getPointer());
-    glNormal3f(0.0, 1.0, 0.0);
-	
+    
 	#if DRAW_CITY
     //Draw a white city grid
     glColor3f(1, 1, 1);
@@ -271,7 +279,7 @@ void Renderer::displayCallback(void)
 
     //Draw all 3 of the Axis
     drawAxis();
-	#endif
+    #endif
 
     glFlush();
     glutSwapBuffers();
@@ -352,10 +360,10 @@ int main(int argc, char *argv[])
 
     glutMouseFunc(mouse_func);
     glutMotionFunc(motion_func);
-	glutKeyboardFunc(key_func);
+    glutKeyboardFunc(key_func);
     
 
-	#if DRAW_PD
+	#if _DRAW_PD_
 	_beginthread(runServer, 0, NULL);
 	#endif
     glutMainLoop();

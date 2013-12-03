@@ -6,6 +6,7 @@
  */
 #include "Group.h"
 #include "Matrix4.h"
+#include "SmartGLUT.h"
 
 using namespace std;
 
