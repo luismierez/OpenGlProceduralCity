@@ -8,9 +8,7 @@
 
 #ifndef __TheRobFordProject__building__
 #define __TheRobFordProject__building__
-
-#include <iostream>
-#include <GLUT/glut.h>
+#include "SmartGLUT.h"
 
 class Building
 {

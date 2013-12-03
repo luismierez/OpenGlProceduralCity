@@ -8,6 +8,7 @@
 #include <time.h>
 #include <vector>
 #include <process.h>
+#include <algorithm>
 
 using namespace std;
 //--------------OSC-----------//
@@ -22,6 +23,7 @@ const int PORT_NUM = 9109;
 float red = 0;
 float green = 0;
 float blue = 0;
+
 void runServer(void *param)
 {
 	UdpSocket sock;
@@ -99,6 +101,7 @@ void init()
     trackballMat.identity();
     resultMatObj.identity();
 
+	#if DRAW_CITY
     //Randomly assign roadPlacement
     srand(time(NULL));
     int roadPlacement;
@@ -170,7 +173,7 @@ void init()
             }
         }
     }
-    
+	#endif
 
 }
 
@@ -246,7 +249,8 @@ void Renderer::displayCallback(void)
     
     glLoadMatrixd(modelViewTemp.getPointer());
     glNormal3f(0.0, 1.0, 0.0);
-    
+	
+	#if DRAW_CITY
     //Draw a white city grid
     glColor3f(1, 1, 1);
     drawCityGrid();
@@ -265,7 +269,8 @@ void Renderer::displayCallback(void)
 
     //Draw all 3 of the Axis
     drawAxis();
-    
+	#endif
+
     glFlush();
     glutSwapBuffers();
 
@@ -299,7 +304,6 @@ int main(int argc, char *argv[])
 {
     init();
 
-
     float specular[]  = {1.0, 1.0, 1.0, 1.0};
     float shininess[] = {100.0};
     float position[]  = {0.0, 10.0, 1.0, 0.0};	// lightsource position
@@ -308,7 +312,6 @@ int main(int argc, char *argv[])
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);   // open an OpenGL context with double buffering, RGB colors, and depth buffering
     glutInitWindowSize(Renderer::width, Renderer::height);      // set initial window size
     glutCreateWindow("The Rob Ford Project");    	      // open window and set window title
-    
     
     glEnable(GL_DEPTH_TEST);            	      // enable depth buffering
     glClear(GL_DEPTH_BUFFER_BIT);       	      // clear depth buffer
@@ -338,7 +341,9 @@ int main(int argc, char *argv[])
     glutMotionFunc(motion_func);
     
 
+	#if DRAW_PD
 	_beginthread(runServer, 0, NULL);
+	#endif
     glutMainLoop();
     return 0;
 }

@@ -9,8 +9,7 @@
 #ifndef __TheRobFordProject__Road__
 #define __TheRobFordProject__Road__
 
-#include <iostream>
-#include <GLUT/glut.h>
+#include "SmartGLUT.h"
 
 enum Orientation
 {

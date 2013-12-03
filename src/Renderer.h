@@ -3,16 +3,14 @@
 
 #include "Matrix4.h"
 #include "Camera.h"
+#include "SmartGLUT.h"
 
-#ifdef _APPLE_
-#include <GLUT/glut.h>
-#endif
+/* Development Macros: Enable or disable certain parts of the program */
+#define DRAW_CITY 0 /* Grady's City Generation Test */
+#define DRAW_PD 0	/* Luis's PD/UDP tests */
+#define DRAW_LSYS 0 /* Ryan's L-System Tree Test */
+/* End dev marcos */
 
-#ifdef _WIN32_
-#include <Gl/glut.h>
-#endif
-
-#define DRAW_CITY 1
 #define NUM_OF_ROADS 10
 #define NUM_OF_BLOCKS 10
 #define BLOCK_WIDTH 10
