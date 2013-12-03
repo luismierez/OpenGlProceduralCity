@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include "Renderer.h"
-#include "Matrix4.h"
-#include "Road.h"
-#include "Building.h"
 #include <time.h>
 #include <vector>
 #include <process.h>
 #include <algorithm>
+
+#include "Renderer.h"
+#include "Matrix4.h"
+#include "Road.h"
+#include "Building.h"
+#include "Tree.h"
 
 using namespace std;
 //--------------OSC-----------//
@@ -300,6 +302,17 @@ void motion_func (int x, int y)
     }
 }
 
+void key_func(unsigned char key, int x, int y)
+{
+	switch(key)
+	{
+		case 't':
+			Tree tree = Tree();
+			cout << tree.generateTree("s") << "\n";
+			break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
     init();
@@ -339,6 +352,7 @@ int main(int argc, char *argv[])
 
     glutMouseFunc(mouse_func);
     glutMotionFunc(motion_func);
+	glutKeyboardFunc(key_func);
     
 
 	#if DRAW_PD

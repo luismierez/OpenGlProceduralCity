@@ -8,7 +8,7 @@
 /* Development Macros: Enable or disable certain parts of the program */
 #define DRAW_CITY 0 /* Grady's City Generation Test */
 #define DRAW_PD 0	/* Luis's PD/UDP tests */
-#define DRAW_LSYS 0 /* Ryan's L-System Tree Test */
+#define DRAW_LSYS 1 /* Ryan's L-System Tree Test */
 /* End dev marcos */
 
 #define NUM_OF_ROADS 10
