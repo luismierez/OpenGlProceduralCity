@@ -1,15 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <time.h>
-#include <vector>
-#include <algorithm>
-
 #include "Renderer.h"
-#include "Matrix4.h"
-#include "Road.h"
-#include "Building.h"
-#include "Tree.h"
+
 
 using namespace std;
 //--------------OSC-----------//
@@ -84,6 +74,7 @@ int Renderer::height = 512;   // set window height in pixels here
 
 vector<Road> roads;
 vector<Building> buildings;
+vector<int> blocks;
 
 static Matrix4 modelViewTemp;
 static Matrix4 trackballMat;
@@ -92,6 +83,10 @@ int track_x, track_y = 0;
 
 std::vector<int> roadPlacementVert;
 std::vector<int> roadPlacementHori;
+std::vector<int> buildingBlocksToRender;
+std::vector<int> plantBlocksToRender;
+
+static GLuint texture[2];
 
 void init()
 {
@@ -106,12 +101,13 @@ void init()
     int roadPlacement;
 
     Orientation orient;
-    
+
     //Go through the number of roads
     for(int i=0; i<NUM_OF_ROADS; i++)
     {
         //Randomly place them
-        roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
+        roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)));
+//        roadPlacement = -1;
         
         //For all the even roads
         if(i%2 == 0){
@@ -124,7 +120,7 @@ void init()
                 //If they're directly next to eachother, reassign the current road placement
                 while(abs(roadPlacement-roadPlacementVert[j]) <= 1)
                 {
-                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
+                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)));
                     j=0;
                 }
             }
@@ -140,7 +136,7 @@ void init()
             {
                 while(abs(roadPlacement-roadPlacementHori[j]) <= 1)
                 {
-                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)+1));
+                    roadPlacement = (NUM_OF_BLOCKS/2)-(rand()%(2*(NUM_OF_BLOCKS/2)));
                     j=0;
                 }
             }
@@ -156,20 +152,105 @@ void init()
     }
     
     
+    //Assign each building to a block
+    int buildingHeight = 20;
+    int block = 0;
     
-    int buildingHeight;
-    for(int i=-(NUM_OF_BLOCKS/2)+1; i<(NUM_OF_BLOCKS/2)+1; i++)
+    int j=-(NUM_OF_BLOCKS/2)+1;
+    
+    int jStart=-(NUM_OF_BLOCKS/2)+1;
+    int jEnd=-(NUM_OF_BLOCKS/2)+1;
+    
+    
+    //Start at the farthest right, lowest block.
+    while(j<=(NUM_OF_BLOCKS/2))
     {
-        for(int j=-(NUM_OF_BLOCKS/2)+1; j<(NUM_OF_BLOCKS/2)+1; j++)
+
+        int i=-(NUM_OF_BLOCKS/2)+1;
+        while(i<=(NUM_OF_BLOCKS/2))
         {
-            //Checks all of the road placements
-            if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) == roadPlacementVert.end() &&
-               std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) == roadPlacementHori.end())
+
+            //If there's a road
+            if(std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) != roadPlacementHori.end() ||
+               std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) != roadPlacementVert.end())
             {
-                buildingHeight = rand()%30+20;
-                buildings.push_back(Building(buildingHeight, i, j));
+                //If there's a vertical road, increment the block
+                if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i) != roadPlacementVert.end() &&
+                   i!=-(NUM_OF_BLOCKS/2)+1)
+                    block++;
+                
+                //If there's a horizontal road at the beginning of the grid
+                if(j==-(NUM_OF_BLOCKS/2)+1 && std::find(roadPlacementHori.begin(), roadPlacementHori.end(), j) != roadPlacementHori.end())
+                {
+                    //Skip over it
+                    jEnd++;
+                    j=jEnd;
+                    jStart=j;
+                }
+                else
+                {
+                    //Reset j and increment to the left
+                    i++;
+                    j=jStart;
+                }
+
             }
+
+            //If there's no road
+            else
+            {
+                //Put a building
+                buildingHeight=rand()%30+20;
+                buildings.push_back(Building(buildingHeight, i, j, block));
+                
+                //If the block isn't in the list, add it
+                if(std::find(blocks.begin(), blocks.end(), block) == blocks.end())
+                {
+                    blocks.push_back(block);
+                }
+
+                //If j isn't at the end of the grid
+                if(j<(NUM_OF_BLOCKS/2))
+                {
+                    //Increment it
+                    j++;
+                    jEnd=j;
+                }
+                
+                //If j is not at the end
+                else{
+                    //Reset j and incrememnt to the left
+                    i++;
+                    j=jStart;
+                }
+            }
+            
         }
+        if(std::find(roadPlacementVert.begin(), roadPlacementVert.end(), i-1) == roadPlacementVert.end())
+           block++;
+        jEnd++;
+        j=jEnd;
+        jStart=j;
+    }
+    
+    int buildingBlockToRender=rand()%blocks.size();
+    int numOfBuildingBlocks = rand()%(blocks.size()/2);
+    numOfBuildingBlocks+=blocks.size()/2;
+    for(int i=0; i<numOfBuildingBlocks; i++)
+    {
+        while(std::find(buildingBlocksToRender.begin(), buildingBlocksToRender.end(), buildingBlockToRender) != buildingBlocksToRender.end() &&
+              buildingBlocksToRender.size()!=0)
+        {
+            buildingBlockToRender= rand()%blocks.size();
+        }
+        
+        buildingBlocksToRender.push_back(buildingBlockToRender);
+    }
+    
+    for (int i=0; i<blocks.size(); i++)
+    {
+        if(std::find(buildingBlocksToRender.begin(), buildingBlocksToRender.end(), i) != buildingBlocksToRender.end())
+            plantBlocksToRender.push_back(i);
     }
     
     //Default view
@@ -178,16 +259,15 @@ void init()
 	Vector4* up = new Vector4(0, 1, 0);
 	camera = Camera(e, d, up);
     
+    
+    
     #else
-    Vector4* e	= new Vector4(0, 0, 0);
+    Vector4* e	= new Vector4(0, 100, -400);
 	Vector4* d	= new Vector4(0, 0, 1);
 	Vector4* up = new Vector4(0, 1, 0);
 	camera = Camera(e, d, up);
-	#endif
-
-
-
     
+	#endif
 }
 
 void drawAxis()
@@ -222,8 +302,107 @@ void drawCityGrid()
         glVertex3f(-BLOCK_WIDTH*(NUM_OF_BLOCKS/2), 0, i*BLOCK_WIDTH);
     }
     glEnd();
+}
+
+unsigned char* loadPPM(const char* filename, int& width, int& height)
+{
+	const int BUFSIZE = 128;
+	FILE* fp;
+	unsigned int read;
+	unsigned char* rawData;
+	char buf[3][BUFSIZE];
+	char* retval_fgets;
+	size_t retval_sscanf;
     
+	if ( (fp=fopen(filename, "rb")) == NULL)
+	{
+		std::cerr << "error reading ppm file, could not locate " << filename << std::endl;
+		width = 0;
+		height = 0;
+		return NULL;
+	}
     
+	// Read magic number:
+	retval_fgets = fgets(buf[0], BUFSIZE, fp);
+    
+	// Read width and height:
+	do
+	{
+		retval_fgets=fgets(buf[0], BUFSIZE, fp);
+	} while (buf[0][0] == '#');
+	retval_sscanf=sscanf(buf[0], "%s %s", buf[1], buf[2]);
+	width  = atoi(buf[1]);
+	height = atoi(buf[2]);
+    
+	// Read maxval:
+	do
+	{
+        retval_fgets=fgets(buf[0], BUFSIZE, fp);
+	} while (buf[0][0] == '#');
+    
+	// Read image data:
+	rawData = new unsigned char[width * height * 3];
+	read = fread(rawData, width * height * 3, 1, fp);
+	fclose(fp);
+	if (read != 1)
+	{
+		std::cerr << "error parsing ppm file, incomplete data" << std::endl;
+		delete[] rawData;
+		width = 0;
+		height = 0;
+		return NULL;
+	}
+    
+	return rawData;
+}
+
+// load image file into texture object
+void loadTexture()
+{
+    
+//    GLuint texture[2];     // storage for one texture
+    int buildWidth, buildHeight;   // texture width/height [pixels]
+    unsigned char* buildData;
+    
+    int roadWidth, roadHeight;   // texture width/height [pixels]
+    unsigned char* roadData;
+    
+    // Load image file
+    buildData = loadPPM("/Users/gradykestler/Documents/167 Final Project/TheRobFordProject/TheRobFordProject/buildingWall.ppm", buildWidth, buildHeight);
+    if (buildData==NULL) return;
+    
+    roadData = loadPPM("/Users/gradykestler/Documents/167 Final Project/TheRobFordProject/TheRobFordProject/roadSection.ppm", roadWidth, roadHeight);
+    if (roadData==NULL) return;
+    
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    // Create ID for texture
+    glGenTextures(2, texture);
+
+    glBindTexture(GL_TEXTURE_2D, texture[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, buildWidth, buildHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, buildData);
+
+    
+    glBindTexture(GL_TEXTURE_2D, texture[1]);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, roadWidth, roadHeight, GL_RGB, GL_UNSIGNED_BYTE, roadData);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, roadWidth, roadHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, roadData);
+}
+
+void initGL()
+{
+    glEnable(GL_TEXTURE_2D);
+    glShadeModel(GL_SMOOTH);   // enable smooth shading
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // black background
+    glClearDepth(1.0f);        // depth buffer setup
+    glEnable(GL_DEPTH_TEST);   // enables depth testing
+    glDepthFunc(GL_LEQUAL);    // configure depth testing
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);          // really nice perspective calculations
 }
 
 //----------------------------------------------------------------------------
@@ -262,23 +441,26 @@ void Renderer::displayCallback(void)
     
 	#if DRAW_CITY
     //Draw a white city grid
-    glColor3f(1, 1, 1);
-    drawCityGrid();
+//    glColor3f(1, 1, 1);
+//    drawCityGrid();
 
     //Draw all roads
+    glBindTexture(GL_TEXTURE_2D, texture[1]);
     for(int i=0; i<roads.size(); i++)
     {
         roads[i].drawRoad();
     }
     
     //Draw Buildings
+    glBindTexture(GL_TEXTURE_2D, texture[0]);
     for(int i=0; i<buildings.size(); i++)
     {
-        buildings[i].drawBuilding();
+        if(std::find(buildingBlocksToRender.begin(), buildingBlocksToRender.end(), buildings[i].getParentBlock()) != buildingBlocksToRender.end())
+            buildings[i].drawBuilding();
     }
 
     //Draw all 3 of the Axis
-    drawAxis();
+//    drawAxis();
     #endif
 
     glFlush();
@@ -336,7 +518,7 @@ int main(int argc, char *argv[])
     
     glEnable(GL_DEPTH_TEST);            	      // enable depth buffering
     glClear(GL_DEPTH_BUFFER_BIT);       	      // clear depth buffer
-    glClearColor(0.0, 0.0, 0.0, 0.0);   	      // set clear color to black
+    glClearColor(1, 1, 1, 1.0);   	      // set clear color to black
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // set polygon drawing mode to fill front and back of each polygon
     glDisable(GL_CULL_FACE);     // disable backface culling to render both sides of polygons
     glShadeModel(GL_SMOOTH);             	      // set shading to smooth
@@ -353,6 +535,9 @@ int main(int argc, char *argv[])
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
+    loadTexture();
+    initGL();
+    
     // Install callback functions:
     glutDisplayFunc(Renderer::displayCallback);
     glutReshapeFunc(Renderer::reshapeCallback);
@@ -361,6 +546,8 @@ int main(int argc, char *argv[])
     glutMouseFunc(mouse_func);
     glutMotionFunc(motion_func);
     glutKeyboardFunc(key_func);
+    
+
     
 
 	#if _DRAW_PD_

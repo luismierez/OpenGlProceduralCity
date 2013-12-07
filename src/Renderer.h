@@ -1,12 +1,22 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <time.h>
+#include <vector>
+#include <algorithm>
+
 #include "Matrix4.h"
 #include "Camera.h"
 #include "SmartGLUT.h"
+#include "Road.h"
+#include "Building.h"
+#include "Tree.h"
 
 /* Development Macros: Enable or disable certain parts of the program */
-#define DRAW_CITY 0 /* Grady's City Generation Test */
+#define DRAW_CITY 1 /* Grady's City Generation Test */
 #define DRAW_PD 0	/* Luis's PD/UDP tests */
 #define DRAW_LSYS 0 /* Ryan's L-System Tree Test */
 /* End dev marcos */
@@ -15,11 +25,14 @@
 #define NUM_OF_ROADS 10
 #define NUM_OF_BLOCKS 20
 #define BLOCK_WIDTH 30
+#define TEX_HEIGHT 768
+#define TEX_WIDTH 768
 
 class Renderer
 {
 public:
     static int width, height;
+//    static GLuint texture[2];
     
     Renderer();   // Constructor
     Matrix4& getMatrix();
