@@ -368,10 +368,10 @@ void loadTexture()
     unsigned char* roadData;
     
     // Load image file
-    buildData = loadPPM("/Users/gradykestler/Documents/167 Final Project/TheRobFordProject/TheRobFordProject/buildingWall.ppm", buildWidth, buildHeight);
+    buildData = loadPPM("buildingWall.ppm", buildWidth, buildHeight);
     if (buildData==NULL) return;
     
-    roadData = loadPPM("/Users/gradykestler/Documents/167 Final Project/TheRobFordProject/TheRobFordProject/roadSection.ppm", roadWidth, roadHeight);
+    roadData = loadPPM("roadSection.ppm", roadWidth, roadHeight);
     if (roadData==NULL) return;
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
