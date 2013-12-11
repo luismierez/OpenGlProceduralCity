@@ -64,9 +64,30 @@ void runServer(void *param)
 }
 #endif
 
-
 //----------End OSC---------//
 
+const int MAXPARTICLES = 5000;
+Particles particle[MAXPARTICLES];
+
+void DrawRain()
+{
+	for(int i=0; i <= MAXPARTICLES; i++)
+	{
+		if(particle[i].ypos<0.0) particle[i].lifetime=0;
+		if((particle[i].active == true) && (particle[i].lifetime>0.0))
+		{
+			glBegin(GL_LINES);
+				glVertex3f(particle[i].xpos, particle[i].ypos, particle[i].zpos);
+				glVertex3f(particle[i].xpos, particle[i].ypos-2, particle[i].zpos);
+			glEnd();
+		} else 
+		{
+			particle[i].CreateParticles();
+			particle[i].InitRain(BLOCK_WIDTH*NUM_OF_BLOCKS, BLOCK_WIDTH*NUM_OF_BLOCKS);
+		}
+		particle[i].RainEvolve();
+	}
+}
 static Camera camera;
 
 int Renderer::width  = 512;   // set window width in pixels here
@@ -463,6 +484,7 @@ void Renderer::displayCallback(void)
 //    drawAxis();
     #endif
 
+	DrawRain();
     glFlush();
     glutSwapBuffers();
 

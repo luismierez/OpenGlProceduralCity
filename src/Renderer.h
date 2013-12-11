@@ -14,6 +14,7 @@
 #include "Road.h"
 #include "Building.h"
 #include "Tree.h"
+#include "Particles.h"
 
 /* Development Macros: Enable or disable certain parts of the program */
 #define DRAW_CITY 1 /* Grady's City Generation Test */
