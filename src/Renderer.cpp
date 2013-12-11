@@ -71,6 +71,7 @@ static Camera camera;
 
 int Renderer::width  = 512;   // set window width in pixels here
 int Renderer::height = 512;   // set window height in pixels here
+Tree* Renderer::currTree;
 
 vector<Road> roads;
 vector<Building> buildings;
@@ -86,7 +87,7 @@ std::vector<int> roadPlacementHori;
 std::vector<int> buildingBlocksToRender;
 std::vector<int> plantBlocksToRender;
 
-static GLuint texture[2];
+GLuint Renderer::texture[NUM_OF_TEXS];
 
 void init()
 {
@@ -94,6 +95,10 @@ void init()
     
     trackballMat.identity();
     resultMatObj.identity();
+
+	#if DRAW_LSYS
+	Renderer::currTree = new Tree();
+	#endif
 
 	#if DRAW_CITY
     //Randomly assign roadPlacement
@@ -268,6 +273,13 @@ void init()
 	camera = Camera(e, d, up);
     
 	#endif
+
+	#if DRAW_LSYS
+	e	= new Vector4(0, 0, -100);
+	d	= new Vector4(0, 0, 0);
+	up = new Vector4(0, 1, 0);
+	camera = Camera(e, d, up);
+	#endif
 }
 
 void drawAxis()
@@ -359,13 +371,18 @@ unsigned char* loadPPM(const char* filename, int& width, int& height)
 // load image file into texture object
 void loadTexture()
 {
-    
-//    GLuint texture[2];     // storage for one texture
+	GLuint *texturePtr = Renderer::texture;
     int buildWidth, buildHeight;   // texture width/height [pixels]
     unsigned char* buildData;
     
     int roadWidth, roadHeight;   // texture width/height [pixels]
     unsigned char* roadData;
+
+	int barkWidth, barkHeight;   // texture width/height [pixels]
+    unsigned char* barkData;
+
+	int leavesWidth, leavesHeight;   // texture width/height [pixels]
+    unsigned char* leavesData;
     
     // Load image file
     buildData = loadPPM("buildingWall.ppm", buildWidth, buildHeight);
@@ -373,25 +390,45 @@ void loadTexture()
     
     roadData = loadPPM("roadSection.ppm", roadWidth, roadHeight);
     if (roadData==NULL) return;
+
+	barkData = loadPPM("treebark.ppm", barkWidth, barkHeight);
+    if (buildData==NULL) return;
+    
+    leavesData = loadPPM("leaves.ppm", leavesWidth, leavesHeight);
+    if (leavesData==NULL) return;
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
     // Create ID for texture
-    glGenTextures(2, texture);
+	glGenTextures(NUM_OF_TEXS, texturePtr);
 
-    glBindTexture(GL_TEXTURE_2D, texture[0]);
+    glBindTexture(GL_TEXTURE_2D, texturePtr[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, buildWidth, buildHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, buildData);
 
     
-    glBindTexture(GL_TEXTURE_2D, texture[1]);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, roadWidth, roadHeight, GL_RGB, GL_UNSIGNED_BYTE, roadData);
+    glBindTexture(GL_TEXTURE_2D, texturePtr[1]);
+    //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, roadWidth, roadHeight, GL_RGB, GL_UNSIGNED_BYTE, roadData);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, roadWidth, roadHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, roadData);
+
+	glBindTexture(GL_TEXTURE_2D, texturePtr[2]);
+    //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, barkWidth, barkHeight, GL_RGB, GL_UNSIGNED_BYTE, barkData);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, barkWidth, barkHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, barkData);
+
+	glBindTexture(GL_TEXTURE_2D, texturePtr[3]);
+    //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, leavesWidth, leavesHeight, GL_RGB, GL_UNSIGNED_BYTE, leavesData);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, leavesWidth, leavesHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, leavesData);
 }
 
 void initGL()
@@ -439,6 +476,10 @@ void Renderer::displayCallback(void)
     modelViewTemp = modelViewTemp.multiply(resultMatObj);
     glLoadMatrixd(modelViewTemp.getPointer());
     
+	#if DRAW_LSYS
+	currTree->draw();
+	#endif
+
 	#if DRAW_CITY
     //Draw a white city grid
 //    glColor3f(1, 1, 1);
@@ -497,8 +538,7 @@ void key_func(unsigned char key, int x, int y)
 	switch(key)
 	{
 		case 't':
-			Tree tree = Tree();
-			cout << tree.generateTree("s") << "\n";
+			Renderer::currTree->regenerate();
 			break;
 	}
 }
@@ -523,7 +563,7 @@ int main(int argc, char *argv[])
     glDisable(GL_CULL_FACE);     // disable backface culling to render both sides of polygons
     glShadeModel(GL_SMOOTH);             	      // set shading to smooth
     glMatrixMode(GL_PROJECTION);
-    
+
     // Generate material properties:
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);

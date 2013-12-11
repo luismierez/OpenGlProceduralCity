@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include "SCSGNode.h"
 /*
  L System Grammar
 
@@ -19,13 +20,19 @@
 using namespace std;
 class Tree
 {
+	static int randomSeed;
 	string generationString;
+	SCSGNode* model;
+	int modelCreated;
 
 	public:
 		Tree(void);
 		~Tree(void);
 	
 		string generateTree(string nextString);
-		void buildSceneGraph();
+		void draw();
+		void regenerate();
+	private:
+		SCSGNode* buildTree();
 };
 #endif

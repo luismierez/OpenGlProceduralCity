@@ -26,6 +26,7 @@
 #define NUM_OF_ROADS 10
 #define NUM_OF_BLOCKS 20
 #define BLOCK_WIDTH 30
+#define NUM_OF_TEXS 4
 #define TEX_HEIGHT 768
 #define TEX_WIDTH 768
 
@@ -33,6 +34,7 @@ class Renderer
 {
 public:
     static int width, height;
+	static Tree* currTree;
 //    static GLuint texture[2];
     
     Renderer();   // Constructor
@@ -41,6 +43,7 @@ public:
     static void idleCallback(void);
     static void reshapeCallback(int w, int h);
     static void displayCallback(void);
+	static GLuint texture[NUM_OF_TEXS];
 };
 
 #endif
