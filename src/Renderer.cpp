@@ -9,6 +9,8 @@
 #include <vector>
 #include <process.h>
 #include <algorithm>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 using namespace std;
 //--------------OSC-----------//
@@ -23,6 +25,14 @@ const int PORT_NUM = 9109;
 float red = 0;
 float green = 0;
 float blue = 0;
+float x = 0.0;
+float y = 0.0;
+float z = 0.0;
+float radius = 50;
+float rotat = 1;
+float cursorX = 0;
+float cursorY = 0;
+float cursorZ = 0;
 
 void runServer(void *param)
 {
@@ -73,6 +83,127 @@ void runServer(void *param)
 
 
 //----------End OSC---------//
+
+
+//---------Particles--------//
+#if DRAW_PARTICLES
+#include "Particles.h"
+const int MAXPARTICLES = 5000;
+Particles particle[MAXPARTICLES];
+
+void InitRain()
+{
+	for (int i = 0; i <=MAXPARTICLES; i++)
+	{
+		particle[i].InitRain(NUM_OF_BLOCKS*NUM_OF_ROADS, NUM_OF_BLOCKS*NUM_OF_ROADS);
+	}
+}
+
+void DrawParticles()
+{
+	glColor3f(particle[0].r, particle[0].g, particle[0].b);
+	glPointSize(5);
+	for (int i=0; i<=MAXPARTICLES; i++)
+	{
+		if(particle[i].ypos<0.0) particle[i].lifetime=0;
+		if((particle[i].active == true) && (particle[i].lifetime>0.0))
+		{
+
+			//glBegin(GL_TRIANGLE_STRIP);
+			//	glVertex3f(particle[i].xpos+.5, particle[i].ypos+.5, particle[i].zpos+0.0);
+			//	glVertex3f(particle[i].xpos-.5, particle[i].ypos+.5, particle[i].zpos+0.0);
+			//	glVertex3f(particle[i].xpos+.5, particle[i].ypos-.5, particle[i].zpos+0.0);
+			//	glVertex3f(particle[i].xpos-.5, particle[i].ypos-.5, particle[i].zpos+0.0);
+			//glEnd();
+			//glBegin(GL_POINTS);
+			//	glVertex3f(particle[i].xpos, particle[i].ypos, particle[i].zpos);
+			//glEnd();
+			glBegin(GL_LINES);
+				glVertex3f(particle[i].xpos, particle[i].ypos, particle[i].zpos);
+				glVertex3f(particle[i].xpos, particle[i].ypos-2, particle[i].zpos);
+			glEnd();
+		} else
+		{
+			particle[i].CreateParticles();
+			particle[i].InitRain(BLOCK_WIDTH*NUM_OF_BLOCKS, BLOCK_WIDTH*NUM_OF_BLOCKS);
+		}
+		//particle[i].FountainEvolve();
+		particle[i].RainEvolve();
+		//cout << particle[i].xpos << " " << particle[i].ypos << " " << particle[i].zpos << endl;
+	}
+}
+
+Particles PSOparticle[MAXPARTICLES];
+float xBest;
+float yBest;
+float zBest;
+Vector3 cursorPosition = Vector3(cursorX, cursorY, cursorZ);
+Vector3 gBest;
+float globalBest = 0;
+void PSOInit()
+{
+	//Vector3 pBest;
+	// Initialize particles
+	for (int i = 0; i <= MAXPARTICLES; i++)
+	{
+		PSOparticle[i].xpos = cursorX + (rand()%BLOCK_WIDTH)/1.0;
+		PSOparticle[i].ypos = cursorY + (rand()%BLOCK_WIDTH)/1.0;
+		PSOparticle[i].zpos = cursorZ + (rand()%BLOCK_WIDTH)/1.0;
+
+		PSOparticle[i].xspeed = 0;
+		PSOparticle[i].yspeed = 0;
+		PSOparticle[i].zspeed = 0;
+
+		//pBest.set(PSOparticle[i].xpos, PSOparticle[i].ypos, PSOparticle[i].zpos); 
+		Vector3 distance;
+		distance.set(cursorX - PSOparticle[i].xpos, 
+			         cursorY - PSOparticle[i].ypos, 
+					 cursorZ - PSOparticle[i].zpos);
+		PSOparticle[i].pBest = distance.magnitude();
+
+		// Update global best position
+		if ( PSOparticle[i].pBest < globalBest )
+		{
+			globalBest = PSOparticle[i].pBest;
+		}	
+	}
+}
+
+void PSOAlgorithm()
+{
+	PSOInit();
+	Vector3 particlePosition;
+	Vector3 currentDistance;
+	for (int i = 0; i <= MAXPARTICLES; i++)
+	{
+		particlePosition.set(PSOparticle[i].xpos, PSOparticle[i].ypos, PSOparticle[i].zpos);
+		float particleBest = particlePosition.magnitude();
+
+		currentDistance.set(cursorX - PSOparticle[i].xpos,
+							cursorY - PSOparticle[i].ypos,
+							cursorZ - PSOparticle[i].zpos);
+		float PSOdistance = currentDistance.magnitude();
+		if ( PSOdistance < PSOparticle[i].pBest )
+		{
+			PSOparticle[i].pBest = PSOdistance;
+		}
+
+		if (PSOparticle[i].pBest < globalBest)
+		{
+			globalBest = PSOparticle[i].pBest;
+		}
+	}
+
+	for (int i = 0; i <= MAXPARTICLES; i++)
+	{
+		//PSOparticle[i].xspeed = PSOparticle[i].xspeed + 
+		//	                    (1.0)*((rand()%100)/100.0)*(
+		//PSOparticle[i].xpos = PSOparticle[i].xpos + PSOparticle[i].xspeed;
+	}
+}
+
+#endif
+
 
 static Camera camera;
 
@@ -174,7 +305,6 @@ void init()
         }
     }
 	#endif
-
 }
 
 void drawAxis()
@@ -192,7 +322,6 @@ void drawAxis()
     glVertex3f(0, 0, -100);
     glVertex3f(0, 0, 100);
     glEnd();
-    
 }
 
 void drawCityGrid()
@@ -209,8 +338,6 @@ void drawCityGrid()
         glVertex3f(-BLOCK_WIDTH*NUM_OF_BLOCKS, 0, i*BLOCK_WIDTH);
     }
     glEnd();
-    
-    
 }
 
 //----------------------------------------------------------------------------
@@ -249,6 +376,7 @@ void Renderer::displayCallback(void)
     
     glLoadMatrixd(modelViewTemp.getPointer());
     glNormal3f(0.0, 1.0, 0.0);
+
 	
 	#if DRAW_CITY
     //Draw a white city grid
@@ -268,9 +396,14 @@ void Renderer::displayCallback(void)
     }
 
     //Draw all 3 of the Axis
-    drawAxis();
-	#endif
 
+	#endif
+    drawAxis();
+	DrawParticles();
+	//glPointSize(10);
+	glBegin(GL_POINTS);
+		glVertex3f(cursorX, cursorY, cursorZ);
+	glEnd();
     glFlush();
     glutSwapBuffers();
 
@@ -300,6 +433,42 @@ void motion_func (int x, int y)
     }
 }
 
+void keyboard_func(unsigned char key, int x, int y)
+{
+	switch(key)
+	{
+	case 'w':
+		cursorY += 1;
+		cout << cursorY << endl;
+		break;
+
+	case 'a':
+		cursorX -= 1;
+		cout << cursorX << endl;
+		break;
+
+	case 's':
+		cursorY -= 1;
+		cout << cursorY << endl;
+		break;
+
+	case 'd':
+		cursorX += 1;
+		cout << cursorX << endl;
+		break;
+		
+	case 'o':
+		cursorZ += 1;
+		cout << cursorZ << endl;
+		break;
+
+	case 'l':
+		cursorZ -= 1;
+		cout << cursorZ << endl;
+		break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
     init();
@@ -314,6 +483,7 @@ int main(int argc, char *argv[])
     glutCreateWindow("The Rob Ford Project");    	      // open window and set window title
     
     glEnable(GL_DEPTH_TEST);            	      // enable depth buffering
+	//glEnable(GL_POINT_SMOOTH);
     glClear(GL_DEPTH_BUFFER_BIT);       	      // clear depth buffer
     glClearColor(0.0, 0.0, 0.0, 0.0);   	      // set clear color to black
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // set polygon drawing mode to fill front and back of each polygon
@@ -339,7 +509,8 @@ int main(int argc, char *argv[])
 
     glutMouseFunc(mouse_func);
     glutMotionFunc(motion_func);
-    
+	glutKeyboardFunc(keyboard_func);
+	InitRain();
 
 	#if DRAW_PD
 	_beginthread(runServer, 0, NULL);
