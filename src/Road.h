@@ -10,6 +10,7 @@
 #define __TheRobFordProject__Road__
 
 #include "SmartGLUT.h"
+#include "Renderer.h"
 
 enum Orientation
 {
@@ -23,11 +24,14 @@ private:
     int width;
     int orientation;
     int roadPlacement;
+    GLuint texture;
 
 public:
     Road();
     
     Road(int);
+    
+    void assignTexture(GLuint, int, int, unsigned char*);
     void setRoadPlacement(int);
     void setOrientation(Orientation);
     int getOrientation();

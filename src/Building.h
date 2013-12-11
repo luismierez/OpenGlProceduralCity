@@ -9,6 +9,7 @@
 #ifndef __TheRobFordProject__building__
 #define __TheRobFordProject__building__
 #include "SmartGLUT.h"
+#include "Renderer.h"
 
 class Building
 {
@@ -16,11 +17,16 @@ private:
     int height;
     int vertBlock;
     int horiBlock;
+    int parentBlock;
+    GLuint texture;
+    Vector3 boundingBox[8];
     
 public:
     Building();
-    Building(int, int, int);
+    Building(int, int, int, int);
     
+    void assignTexture(GLuint, int, int, unsigned char*);
+    int getParentBlock();
     void setPlacement(int, int);
     void drawBuilding();
     
