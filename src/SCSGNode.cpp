@@ -82,7 +82,7 @@ void SCSGNode::drawShape(SCSGShape shape)
 			glBindTexture(GL_TEXTURE_2D, Renderer::texture[3]);
 			glPushMatrix();
 			glMultMatrixd(heightTranslation.getPointer());
-			glutSolidSphere(shapeParams[4], shapeParams[2], shapeParams[3]);
+			gluSphere(myQuadric, shapeParams[4], shapeParams[2], shapeParams[3]);
 			glPopMatrix();
 			glBindTexture(GL_TEXTURE_2D, NULL);
 			break;

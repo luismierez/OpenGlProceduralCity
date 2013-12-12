@@ -12,6 +12,8 @@ Tree::Tree(void)
 {
 	modelCreated = 0;
 	model = buildTree();
+	modelViewMatrix = Matrix4();
+	modelViewMatrix.identity();
 }
 
 Tree::~Tree(void)
@@ -48,7 +50,7 @@ string Tree::generateTree(string nextString)
 					finalString += generateTree("t b t1");
 					break;
 				case 2:
-					finalString += generateTree("t t1 b");
+					finalString += generateTree("t b t1 b");
 					break;
 				case 3:
 					finalString += generateTree("t t1");
@@ -93,11 +95,11 @@ SCSGNode* Tree::buildTree()
 	 * [3] - number of segments used to construct base
 	 * [4] - number of segments to render to construct height
 	 */
-	baseParams[0] = 10.0;
-	baseParams[1] = 9.0;
-	baseParams[2] = 10.0;
-	baseParams[3] = 10.0;
-	baseParams[3] = 10.0;
+	baseParams[0] = TRUNK_RADIUS_BOT;
+	baseParams[1] = TRUNK_RADIUS_TOP;
+	baseParams[2] = TRUNK_HEIGHT;
+	baseParams[3] = TRUNK_SEGS;
+	baseParams[3] = TRUNK_SEGS;
 
 	SCSGNode* parent = new SCSGNode(Trunk, baseParams, rotateToUpright, ident);
 	SCSGNode* current = parent;
@@ -109,11 +111,11 @@ SCSGNode* Tree::buildTree()
 		if( !(iter->compare("t") ) )
 		{
 			trunkIteration++;
-			trunkParams[0] = baseParams[0] - trunkIteration;
-			trunkParams[1] = baseParams[1] - trunkIteration;
-			trunkParams[2] = baseParams[2] - trunkIteration;
-			trunkParams[3] = 10.0;
-			trunkParams[4] = 10.0;
+			trunkParams[0] = baseParams[0] - trunkIteration*TRUNK_RADIUS_DELTA;
+			trunkParams[1] = baseParams[1] - trunkIteration*TRUNK_RADIUS_DELTA;
+			trunkParams[2] = baseParams[2] - trunkIteration*TRUNK_HEIGHT_DELTA;
+			trunkParams[3] = TRUNK_SEGS;
+			trunkParams[4] = TRUNK_SEGS;
 
 			Matrix4 n = Matrix4();
 			n.translationMat(0,0,trunkParams[2]);
@@ -133,28 +135,27 @@ SCSGNode* Tree::buildTree()
 			 * [3] - height segments
 			 * [4] - leaf radius
 			 */
-			trunkParams[0] = baseParams[0] - trunkIteration;
-			trunkParams[1] = baseParams[1] - trunkIteration;
-			trunkParams[2] = baseParams[2] - trunkIteration;
-			trunkParams[3] = 10.0;
-			trunkParams[4] = 10.0;
+			/*
+			trunkParams[0] = baseParams[0] - trunkIteration*TRUNK_HEIGHT_DELTA;
+			trunkParams[1] = baseParams[1] - trunkIteration*TRUNK_RADIUS_DELTA;
+			trunkParams[2] = baseParams[2] - trunkIteration*TRUNK_RADIUS_DELTA;
+			trunkParams[3] = TRUNK_SEGS;
+			trunkParams[4] = TRUNK_SEGS;
+			*/
 
-			branchParams[0] = 2.0;
-			branchParams[1] = (15-rand()%5);
-			branchParams[2] = 10.0;
-			branchParams[3] = 10.0;
-			branchParams[4] = (14-rand()%2);
+			branchParams[0] = BRANCH_RADIUS;
+			branchParams[1] = BRANCH_LENGTH;
+			branchParams[2] = BRANCH_SEGS;
+			branchParams[3] = BRANCH_SEGS;
+			branchParams[4] = BRANCH_LEAF_RADIUS;
 
 			//Rotation
 			Matrix4 *rotX = new Matrix4();
 			Vector3 axis = Vector3();
-			axis.set(rand()%60+40, rand()%60+40, rand()%100);
+			axis.set(rand()%AXIS_XY_RAND_RANGE+AXIS_XY_LOW, rand()%AXIS_XY_RAND_RANGE+AXIS_XY_LOW, rand()%100);
 			axis.normalize();
-			double angle = rand()%180;//(180)/180.0 * M_1_PI;
+			double angle = rand()%AXIS_ANGLE_RAND_RANGE + AXIS_ANGLE_LOW;
 			*rotX = rotX->rotate(axis, angle);
-					
-			Matrix4 trans = Matrix4();
-			trans.translationMat(0,0, -(branchParams[2]* 5/6));
 
 			/*
 			Matrix4 offset = trans.multiply(rotX);
@@ -166,12 +167,21 @@ SCSGNode* Tree::buildTree()
 	return parent;
 }
 
+void Tree::setModelViewMatrix(Matrix4 mvm)
+{
+	this->modelViewMatrix = mvm;
+}
+
 void Tree::regenerate()
 {
+
 	model = buildTree();
 }
 
 void Tree::draw()
 {
+	glPushMatrix();
+	glMultMatrixd(modelViewMatrix.getPointer());
 	model->draw();
+	glPopMatrix();
 }
