@@ -38,12 +38,13 @@ void Particles::SphereEvolve()
 
 void Particles::RainEvolve()
 {
-	ypos-= (rand() % 100)/100.0 * 0.3;
+	ypos-= 1 + (rand() % 100)/100.0;
+	//ypos -= 3;
 }
 
 void Particles::InitRain(int width, int height)
 {
 	xpos = -width + (rand() % (2*width))/1.0;
-	ypos = rand()%80;
+	ypos = rand()%100;
 	zpos = -height + (rand() % (2*height))/1.0;
 }
