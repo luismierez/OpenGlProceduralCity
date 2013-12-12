@@ -7,7 +7,7 @@ Emitter::Emitter()
 
 void Emitter::setMaxParticles(int p)
 {
-	MAXPARTICLES = p;
+	maxParticles = p;
 }
 
 void Emitter::DrawRain(double width, double height)
@@ -63,7 +63,7 @@ void Emitter::PSOInit(double x, double y, double z)
 
 void Emitter::PSOAlgorithm()
 {
-	PSOInit();
+	PSOInit(0,0,0);
 	Vector3 particlePosition;
 	Vector3 currentDistance;
 	for (int i = 0; i <= MAXPARTICLES; i++)

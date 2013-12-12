@@ -5,10 +5,12 @@
 #include "Particles.h"
 #include "Vector3.h"
 
+#define MAXPARTICLES 500
+
 class Emitter
 {
 public:
-	int MAXPARTICLES;
+	int maxParticles;
 	double globalBest;
 
 

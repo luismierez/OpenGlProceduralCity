@@ -60,7 +60,7 @@ void SCSGNode::drawShape(SCSGShape shape)
 	{
 		case Trunk:
 			/* Texturing goes here */
-			glBindTexture(GL_TEXTURE_2D, Renderer::texture[0]);
+			glBindTexture(GL_TEXTURE_2D, Renderer::texture[2]);
 			gluCylinder(myQuadric, shapeParams[0], shapeParams[1], shapeParams[2], shapeParams[3], shapeParams[4]);
 			gluDisk(myQuadric, 0, shapeParams[0], shapeParams[3], shapeParams[4]);
 			glPushMatrix();
@@ -72,14 +72,14 @@ void SCSGNode::drawShape(SCSGShape shape)
 			break;
 		case Branch:
 			/* Texture branch */
-			glBindTexture(GL_TEXTURE_2D, Renderer::texture[3]);
+			glBindTexture(GL_TEXTURE_2D, Renderer::texture[2]);
 			glutSolidCone(shapeParams[0], shapeParams[1], shapeParams[2], shapeParams[3]);
 
 			Matrix4 heightTranslation = Matrix4();
 			heightTranslation.translationMat(0, 0, shapeParams[1]);
 
 			/* Texture leaves */
-			glBindTexture(GL_TEXTURE_2D, Renderer::texture[4]);
+			glBindTexture(GL_TEXTURE_2D, Renderer::texture[3]);
 			glPushMatrix();
 			glMultMatrixd(heightTranslation.getPointer());
 			glutSolidSphere(shapeParams[4], shapeParams[2], shapeParams[3]);
