@@ -92,7 +92,7 @@ static Camera camera;
 
 int Renderer::width  = 512;   // set window width in pixels here
 int Renderer::height = 512;   // set window height in pixels here
-Tree* Renderer::currTree;
+vector<Tree> Renderer::trees;
 
 vector<Road> roads;
 vector<Building> buildings;
@@ -112,13 +112,21 @@ GLuint Renderer::texture[NUM_OF_TEXS];
 
 void init()
 {
-
-    
     trackballMat.identity();
     resultMatObj.identity();
 
 	#if DRAW_LSYS
-	Renderer::currTree = new Tree();
+	Matrix4 pos;
+	pos.translationMat(-200,0,0);
+	Renderer::trees = vector<Tree>();
+	Tree currT;
+	for(int ii = 0; ii < TEST_TRESS_TO_GEN; ii++)
+	{
+		currT = Tree();
+		currT.setModelViewMatrix(pos);
+		Renderer::trees.push_back(currT);
+		pos.translationMat(((ii%10)*50) - 200, 0, 50*(ii/10) - 100);
+	}
 	#endif
 
 	#if DRAW_CITY
@@ -296,7 +304,7 @@ void init()
 	#endif
 
 	#if DRAW_LSYS
-	e	= new Vector4(0, 0, -100);
+	e	= new Vector4(0, 0, 500);
 	d	= new Vector4(0, 0, 0);
 	up = new Vector4(0, 1, 0);
 	camera = Camera(e, d, up);
@@ -498,7 +506,10 @@ void Renderer::displayCallback(void)
     glLoadMatrixd(modelViewTemp.getPointer());
     
 	#if DRAW_LSYS
-	currTree->draw();
+	for(vector<Tree>::iterator iter = trees.begin(); iter != trees.end(); iter++)
+	{
+		(*iter).draw();
+	}
 	#endif
 
 	#if DRAW_CITY
@@ -560,7 +571,10 @@ void key_func(unsigned char key, int x, int y)
 	switch(key)
 	{
 		case 't':
-			Renderer::currTree->regenerate();
+			for(vector<Tree>::iterator iter = Renderer::trees.begin(); iter != Renderer::trees.end(); iter++)
+			{
+				(*iter).regenerate();
+			}
 			break;
 	}
 }

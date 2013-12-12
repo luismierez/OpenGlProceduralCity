@@ -17,9 +17,9 @@
 #include "Particles.h"
 
 /* Development Macros: Enable or disable certain parts of the program */
-#define DRAW_CITY 1 /* Grady's City Generation Test */
+#define DRAW_CITY 0 /* Grady's City Generation Test */
 #define DRAW_PD 0	/* Luis's PD/UDP tests */
-#define DRAW_LSYS 0 /* Ryan's L-System Tree Test */
+#define DRAW_LSYS 1 /* Ryan's L-System Tree Test */
 #define DRAW_PARTICLES 1
 /* End dev marcos */
 
@@ -30,12 +30,13 @@
 #define NUM_OF_TEXS 4
 #define TEX_HEIGHT 768
 #define TEX_WIDTH 768
+#define TEST_TRESS_TO_GEN 100
 
 class Renderer
 {
 public:
     static int width, height;
-	static Tree* currTree;
+	static vector<Tree> trees;
 //    static GLuint texture[2];
     
     Renderer();   // Constructor

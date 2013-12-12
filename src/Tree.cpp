@@ -174,7 +174,7 @@ void Tree::setModelViewMatrix(Matrix4 mvm)
 
 void Tree::regenerate()
 {
-
+	delete model;
 	model = buildTree();
 }
 

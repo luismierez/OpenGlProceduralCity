@@ -148,6 +148,8 @@ Vector4 Matrix4::multiply(Vector4& other)
 // angle in radians
 void Matrix4::rotateX(double angle)
 {
+	angle = (angle/180.0) * M_PI;
+
 	m[0][0] = 1;
 	m[0][1] = 0;
 	m[0][2] = 0;
@@ -168,7 +170,7 @@ void Matrix4::rotateX(double angle)
 // angle in radians
 void Matrix4::rotateY(double angle)
 {
-    angle = (angle/180.0) * M_1_PI;
+    angle = (angle/180.0) * M_PI;
 
 	m[0][0] = cos(angle);
 	m[0][1] = 0;
@@ -190,7 +192,7 @@ void Matrix4::rotateY(double angle)
 // angle in radians
 void Matrix4::rotateZ(double angle)
 {
-    angle = (angle/180.0) * M_1_PI;
+    angle = (angle/180.0) * M_PI;
 	m[0][0] = cos(angle);
 	m[0][1] = sin(angle);
 	m[0][2] = 0;

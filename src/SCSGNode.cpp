@@ -91,4 +91,11 @@ void SCSGNode::drawShape(SCSGShape shape)
 
 SCSGNode::~SCSGNode(void)
 {
+	if(!(this->children.empty()))
+	{
+		for(vector<SCSGNode*>::iterator iter = children.begin(); iter != children.end(); iter++)
+		{
+			delete (*iter);
+		}
+	}
 }
